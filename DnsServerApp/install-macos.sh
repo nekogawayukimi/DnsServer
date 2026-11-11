@@ -47,13 +47,24 @@ then
     exit 1
 fi
 
-# If the binary is framework-dependent, make sure a .NET runtime is available.
-if [ ! -f "$SCRIPT_DIR/System.Private.CoreLib.dll" ] && ! command -v dotnet > /dev/null 2>&1 && [ ! -x "/usr/local/share/dotnet/dotnet" ]
+# If the binary is framework-dependent, make sure a MATCHING .NET runtime is
+# available. .NET does not roll forward across major versions, so e.g. an
+# installed .NET 11 runtime cannot run an app targeting .NET 10.
+if [ ! -f "$SCRIPT_DIR/System.Private.CoreLib.dll" ]
 then
-    echo "Error: this is a framework-dependent build but no .NET runtime was found."
-    echo "Install the ASP.NET Core Runtime from https://dotnet.microsoft.com/download/dotnet/10.0"
-    echo "or rebuild with: ./build-macos.sh --self-contained"
-    exit 1
+    DOTNET_BIN="$(command -v dotnet 2> /dev/null || true)"
+    [ -z "$DOTNET_BIN" ] && [ -x "/usr/local/share/dotnet/dotnet" ] && DOTNET_BIN="/usr/local/share/dotnet/dotnet"
+
+    REQUIRED_MAJOR="$(grep -o '"version": *"[0-9]*' "$SCRIPT_DIR/DnsServerApp.runtimeconfig.json" 2> /dev/null | head -1 | grep -o '[0-9]*$')"
+    [ -z "$REQUIRED_MAJOR" ] && REQUIRED_MAJOR="10"
+
+    if [ -z "$DOTNET_BIN" ] || ! "$DOTNET_BIN" --list-runtimes 2> /dev/null | grep -q "Microsoft.AspNetCore.App $REQUIRED_MAJOR\."
+    then
+        echo "Error: this is a framework-dependent build and the ASP.NET Core Runtime $REQUIRED_MAJOR.x was not found."
+        echo "Install it (arm64) from https://dotnet.microsoft.com/download/dotnet/$REQUIRED_MAJOR.0"
+        echo "or rebuild in self-contained mode (no runtime needed): ./build-macos.sh"
+        exit 1
+    fi
 fi
 
 # Stop an existing service before replacing files.

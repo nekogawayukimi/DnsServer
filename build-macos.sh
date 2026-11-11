@@ -6,9 +6,13 @@
 # Run this script from the root of the DnsServer repository.
 #
 # Usage:
-#   ./build-macos.sh                  # framework-dependent build for osx-arm64 (requires ASP.NET Core Runtime to run)
-#   ./build-macos.sh --self-contained # standalone build, no .NET runtime needed on the target machine
-#   ./build-macos.sh --arch x64       # build for Intel Macs (osx-x64)
+#   ./build-macos.sh                       # self-contained build for osx-arm64, no .NET runtime needed to run it (default)
+#   ./build-macos.sh --framework-dependent # smaller build; requires the matching ASP.NET Core Runtime on the target machine
+#   ./build-macos.sh --arch x64            # build for Intel Macs (osx-x64)
+#
+# Self-contained is the default on macOS because the installed .NET runtime
+# (e.g. from Homebrew) often has a different major version than the one this
+# app targets, and .NET does not roll forward across major versions.
 #
 # Requirements: .NET 10 SDK (https://dotnet.microsoft.com/download/dotnet/10.0)
 #   brew install --cask dotnet-sdk    # or use the official installer
@@ -17,7 +21,7 @@
 set -e
 
 ARCH="arm64"
-SELF_CONTAINED="false"
+SELF_CONTAINED="true"
 
 while [ $# -gt 0 ]
 do
@@ -25,13 +29,16 @@ do
         --self-contained)
             SELF_CONTAINED="true"
             ;;
+        --framework-dependent)
+            SELF_CONTAINED="false"
+            ;;
         --arch)
             shift
             ARCH="$1"
             ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--self-contained] [--arch arm64|x64]"
+            echo "Usage: $0 [--self-contained|--framework-dependent] [--arch arm64|x64]"
             exit 1
             ;;
     esac

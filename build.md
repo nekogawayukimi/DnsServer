@@ -30,8 +30,8 @@ git clone --depth 1 https://github.com/TechnitiumSoftware/DnsServer.git DnsServe
 cd DnsServer
 ./build-macos.sh
 ```
-This builds TechnitiumLibrary and publishes `DnsServerApp` for `osx-arm64` into `DnsServerApp/bin/Release/publish-osx-arm64`. Options:
-- `./build-macos.sh --self-contained` produces a standalone build that does not require the .NET runtime on the target machine.
+This builds TechnitiumLibrary and publishes `DnsServerApp` for `osx-arm64` into `DnsServerApp/bin/Release/publish-osx-arm64`. The build is self-contained by default (the .NET runtime is bundled), because the runtime installed on most Macs (e.g. via Homebrew) is often a different major version than the one this app targets and .NET does not roll forward across major versions. Options:
+- `./build-macos.sh --framework-dependent` produces a much smaller build that requires the matching ASP.NET Core Runtime on the target machine.
 - `./build-macos.sh --arch x64` targets Intel Macs.
 
 4. Run the server directly (requires root to bind port 53):
