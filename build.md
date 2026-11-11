@@ -10,6 +10,45 @@ To build the Technitium DNS Server Windows Setup, you need to install [Microsoft
 
 3. Open the `DnsServer\DnsServerWindowsSetup\DnsServerSetup.iss` file in Inno Setup and click on the Build > Compile menu to generate a Windows setup in `DnsServerWindowsSetup\Release` folder that you can then use to install Technitium DNS Server on Windows.
 
+## For macOS (Apple Silicon & Intel)
+
+Follow the instructions below to build and install the DNS server from source on macOS. The default build targets Apple Silicon (`osx-arm64`); use `--arch x64` for Intel Macs.
+
+1. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) using the official installer (choose the Arm64 installer for Apple Silicon), or with Homebrew:
+```
+brew install --cask dotnet-sdk
+```
+
+2. Clone the source code for both [TechnitiumLibrary](https://github.com/TechnitiumSoftware/TechnitiumLibrary) and [DnsServer](https://github.com/TechnitiumSoftware/DnsServer) into the current folder:
+```
+git clone --depth 1 https://github.com/TechnitiumSoftware/TechnitiumLibrary.git TechnitiumLibrary
+git clone --depth 1 https://github.com/TechnitiumSoftware/DnsServer.git DnsServer
+```
+
+3. Build and publish for macOS:
+```
+cd DnsServer
+./build-macos.sh
+```
+This builds TechnitiumLibrary and publishes `DnsServerApp` for `osx-arm64` into `DnsServerApp/bin/Release/publish-osx-arm64`. Options:
+- `./build-macos.sh --self-contained` produces a standalone build that does not require the .NET runtime on the target machine.
+- `./build-macos.sh --arch x64` targets Intel Macs.
+
+4. Run the server directly (requires root to bind port 53):
+```
+sudo ./DnsServerApp/bin/Release/publish-osx-arm64/DnsServerApp
+```
+
+Or install it as a `launchd` daemon so it starts automatically at boot:
+```
+sudo ./DnsServerApp/bin/Release/publish-osx-arm64/install-macos.sh
+```
+The service is registered as `com.technitium.dns` with config in `/etc/dns` and logs in `/var/log/technitium/dns`. To uninstall, run `sudo /opt/technitium/dns/uninstall-macos.sh`.
+
+5. Open the DNS server web console in a web browser using `http://localhost:5380/` URL and set a login password to complete the installation.
+
+Note! macOS ships its own mDNSResponder on port 53 only when Internet Sharing is enabled; check for port conflicts with `sudo lsof -nP -iUDP:53`. DNS-over-QUIC and HTTP/3 require `libmsquic`, which is not officially available on macOS; all other protocols (UDP, TCP, DNS-over-TLS, DNS-over-HTTPS) work normally.
+
 ## For Linux
 
 Follow the instructions given below to build and install the DNS server from source. These instructions are written for Ubuntu and Raspberry Pi OS but, you can easily follow similar steps on your favorite distro.

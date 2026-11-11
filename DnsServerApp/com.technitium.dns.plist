@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.technitium.dns</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/technitium/dns/DnsServerApp</string>
+		<string>/etc/dns</string>
+	</array>
+
+	<key>WorkingDirectory</key>
+	<string>/opt/technitium/dns</string>
+
+	<!-- DOTNET_ROOT is needed for framework-dependent builds; harmless for self-contained builds. -->
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>DOTNET_ROOT</key>
+		<string>/usr/local/share/dotnet</string>
+	</dict>
+
+	<key>RunAtLoad</key>
+	<true/>
+
+	<!-- Restart the service if it crashes -->
+	<key>KeepAlive</key>
+	<true/>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+
+	<key>StandardOutPath</key>
+	<string>/var/log/technitium/dns/stdout.log</string>
+	<key>StandardErrorPath</key>
+	<string>/var/log/technitium/dns/stderr.log</string>
+</dict>
+</plist>
